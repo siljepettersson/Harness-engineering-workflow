@@ -72,6 +72,11 @@ The intended data layout is:
 ```text
 data/
 ├── raw/
+│   ├── archive/
+│   │   └── ssb/
+│   │       └── cpi/
+│   │           ├── 2026-04-23-about-cpi.html
+│   │           └── 2026-04-23-monthly-cpi-api-response.json
 │   └── ssb/
 │       └── cpi/
 │           ├── about-cpi.md
@@ -92,7 +97,7 @@ data/
 
 The first data version should be curated, not broad-scraped. A small number of high-quality SSB pages and one or two fixed Statbank tables are enough for the first milestone.
 
-Raw SSB sources remain the source of truth. Derived summaries, wiki pages, and generated answers must stay traceable to raw documentation or structured table output.
+Raw SSB sources remain the source of truth. Curated Markdown under `data/raw/ssb/` is the normal retrieval and grounding layer. Original capture snapshots under `data/raw/archive/` preserve provenance and source-drift history, but they should not be indexed by default. Derived summaries, wiki pages, and generated answers must stay traceable to raw documentation or structured table output.
 
 ## Session Memory
 
@@ -168,7 +173,31 @@ wiki/
     └── monthly-cpi.md
 ```
 
+This folder structure is domain-specific, not a requirement of the LLM Wiki pattern. Karpathy's pattern is more general: keep raw sources separate from the maintained wiki, and keep a schema or convention file that tells the LLM how to maintain the wiki. In this repository, the mapping is:
+
+```text
+data/raw/archive/  original capture snapshots for provenance
+data/raw/ssb/      curated source-of-truth SSB documents
+data/structured/   source-of-truth SSB table extracts
+wiki/              derived CPI synthesis pages
+AGENTS.md          project conventions for AI assistants
+docs/operations/   operational workflows such as ingest, query, promote, and lint
+artifacts/         eval runs, interaction logs, and wiki lint reports
+```
+
+The initial wiki folders reflect the kinds of CPI questions this assistant should answer:
+
+- `concepts/` for terms such as CPI, HICP, CPI-ATE, index level, and inflation rate
+- `methods/` for methodology, seasonal adjustment, weighting, and measurement notes
+- `comparisons/` for pages such as CPI vs HICP or CPI vs CPI-ATE
+- `tables/` for Statbank table descriptions and links to structured extracts
+- `analysis/` for reviewed answer pages that are worth preserving
+
+Folders such as `entities/` or `source-notes/` can be added later, but they are not necessary for the first CPI version. `entities/` becomes useful if the project starts tracking named organizations, places, datasets, or statistical bodies. `source-notes/` becomes useful if short source-summary pages are needed. Avoid `wiki/sources/` for now because it can be confused with `data/raw/`, which is the actual source-of-truth layer.
+
 The wiki is a derived synthesis layer, not the source of truth. Every wiki page should link back to raw SSB sources. The harness should distinguish a `wiki hit` from `raw source grounding` to avoid summary drift.
+
+Wiki lint is the health-check pipeline for this layer. It should be layered rather than a vague LLM review: structure lint, source lint, factual lint, and behavior lint. The detailed design is in [docs/operations/wiki-lint.md](docs/operations/wiki-lint.md).
 
 ## Evaluation Harness
 
@@ -287,12 +316,13 @@ Recommended order:
 1. CPI data migration
 2. lightweight session memory / conversation state
 3. optional source-bound CPI wiki layer
-4. retrieval harness
-5. fixed structured query path
-6. hybrid answer with citations
-7. feedback loop and regression checks
-8. controlled query planning agent
-9. answer verification agent
+4. deterministic wiki lint
+5. retrieval harness
+6. fixed structured query path
+7. hybrid answer with citations
+8. feedback loop and regression checks
+9. semantic lint and controlled query planning agent
+10. answer verification agent
 ```
 
 ## Project Structure
@@ -305,7 +335,27 @@ Current repository:
 ├── uv.lock
 ├── README.md
 ├── AGENTS.md
+├── artifacts/
+│   ├── eval_runs/
+│   ├── interaction_logs/
+│   └── wiki_lint/
+├── data/
+│   ├── raw/
+│   │   ├── archive/
+│   │   │   └── ssb/
+│   │   │       └── cpi/
+│   │   └── ssb/
+│   │       └── cpi/
+│   ├── structured/
+│   │   └── cpi/
+│   └── evals/
+│       └── cpi/
 ├── docs/
+│   ├── architecture/
+│   ├── data/
+│   ├── evaluation/
+│   ├── operations/
+│   ├── wiki/
 │   └── ssb-cpi-hybrid-roadmap.md
 ├── src/
 │   ├── assistant.py
@@ -319,22 +369,14 @@ Current repository:
 │   ├── rag_pipeline.py
 │   ├── schemas.py
 │   └── vectorstore.py
-└── data/
-```
-
-Likely future additions:
-
-```text
-├── src/
-│   ├── conversation_state.py
-│   ├── router.py
-│   ├── structured_query.py
-│   ├── grounding.py
-│   └── evaluation/
-├── wiki/
-└── artifacts/
-    ├── eval_runs/
-    └── interaction_logs/
+└── wiki/
+    ├── index.md
+    ├── log.md
+    ├── analysis/
+    ├── comparisons/
+    ├── concepts/
+    ├── methods/
+    └── tables/
 ```
 
 ## Running The Current Baseline
