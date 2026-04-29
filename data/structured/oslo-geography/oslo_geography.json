@@ -1,0 +1,73 @@
+{
+  "source_type": "structured_geography_schema",
+  "topic": "oslo-geography",
+  "city": "Oslo",
+  "retrieval_date": "2026-04-29",
+  "description": "Reference geography schema for Oslo-related retrieval, routing, and structured query work.",
+  "layers": {
+    "administrative_bydel": {
+      "geography_type": "bydel",
+      "source_authority": "Oslo kommune",
+      "areas": [
+        "Alna",
+        "Bjerke",
+        "Frogner",
+        "Gamle Oslo",
+        "Grorud",
+        "Grunerlokka",
+        "Nordre Aker",
+        "Nordstrand",
+        "Sagene",
+        "St. Hanshaugen",
+        "Stovner",
+        "Sondre Nordstrand",
+        "Ullern",
+        "Vestre Aker",
+        "Ostensjo"
+      ],
+      "notes": [
+        "Use this layer for general Oslo geography understanding and conversation-state normalization.",
+        "Sentrum and Marka may appear in some municipal statistics contexts, but they are not included in the 15 standard bydeler list here."
+      ]
+    },
+    "ssb_published_area_labels": {
+      "geography_type": "published_area_label",
+      "source_authority": "Statistics Norway",
+      "dataset_example": "Rental market survey, table 09895",
+      "areas": [
+        "The whole country",
+        "Oslo and Baerum municipality",
+        "Akershus except Baerum municipality",
+        "Bergen municipality",
+        "Trondheim municipality",
+        "Stavanger municipality",
+        "Urban settlements with more than 20,000 inhabitants",
+        "Urban settlements with between 2,000-19,999 inhabitants",
+        "Urban settlements with between 200 and 1,999 inhabitants and sparsely populated areas"
+      ],
+      "notes": [
+        "Use the exact SSB published area labels for structured queries.",
+        "Do not rewrite these labels into bydeler unless the official source itself publishes bydel-level figures."
+      ]
+    }
+  },
+  "mapping_policy": {
+    "implicit_mapping_allowed": false,
+    "rules": [
+      "A bydel is not the same as an SSB published rent area label.",
+      "Oslo and Baerum municipality must not be decomposed into Oslo bydeler in structured answers.",
+      "If a user asks for a bydel-level rent answer and the source only provides municipality or area-group data, the assistant should say that the source is not published at bydel level."
+    ]
+  },
+  "recommended_usage": {
+    "rag": [
+      "Use bydeler for general place recognition, follow-up question resolution, and query understanding."
+    ],
+    "structured_query": [
+      "Use exact SSB published area labels for filters, queries, and answer citations."
+    ],
+    "answer_generation": [
+      "State clearly when the available data is municipality-level or area-group-level rather than bydel-level."
+    ]
+  }
+}

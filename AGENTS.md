@@ -53,6 +53,7 @@ Read the relevant detail doc only when needed:
 - Wiki frontmatter schema: `docs/wiki/frontmatter-schema.md`
 - Wiki page types and style: `docs/wiki/page-types.md`
 - Data source policy: `docs/data/source-policy.md`
+- Oslo geography policy: `docs/data/oslo-geography.md`
 - Roadmap: `docs/ssb-cpi-hybrid-roadmap.md`
 
 ## Completion Criteria

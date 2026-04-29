@@ -12,4 +12,6 @@ Each extract should have:
 - metric description
 - local file path
 
+Geographic labels should also stay source-faithful. If an SSB table is published with labels such as `Oslo and Baerum municipality`, keep that exact label in structured data instead of rewriting it into Oslo bydeler.
+
 Avoid broad automatic table discovery in the first implementation.

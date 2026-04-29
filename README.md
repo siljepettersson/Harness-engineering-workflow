@@ -99,6 +99,8 @@ The first data version should be curated, not broad-scraped. A small number of h
 
 Raw SSB sources remain the source of truth. Curated Markdown under `data/raw/ssb/` is the normal retrieval and grounding layer. Original capture snapshots under `data/raw/archive/` preserve provenance and source-drift history, but they should not be indexed by default. Derived summaries, wiki pages, and generated answers must stay traceable to raw documentation or structured table output.
 
+For Oslo-specific work, keep a separate geography schema. Use Oslo `bydel` names for general place understanding and session memory, but use exact SSB published area labels for structured statistics. Do not implicitly map one layer to the other.
+
 ## Session Memory
 
 The first user-visible enhancement after CPI data migration should be lightweight session memory, implemented as structured conversation state.
