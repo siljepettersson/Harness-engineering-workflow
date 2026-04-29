@@ -12,6 +12,8 @@ load_dotenv()
 class PathsConfig:
     project_root: Path = Path(__file__).resolve().parent.parent
     data_dir: Path = project_root / "data"
+    raw_docs_dir: Path = data_dir / "raw" / "ssb"
+    structured_data_dir: Path = data_dir / "structured"
     vectorstore_dir: Path = project_root / "vectorstore"
 
 

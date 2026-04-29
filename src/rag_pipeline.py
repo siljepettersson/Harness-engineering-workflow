@@ -10,10 +10,11 @@ from .indexing import index_documents
 from .query import query
 
 DEMO_QUESTIONS = [
-    "What does CPI measure?",
-    "What is the difference between CPI and HICP?",
-    "Why is CPI seasonally adjusted?",
-    "How has CPI changed in Norway over the last ten years?",
+    "What does the rental market survey measure?",
+    "What is predicted monthly rent in the rental market survey?",
+    "Can Oslo and Baerum rent figures be directly compared across years?",
+    "Does SSB publish these rent figures by bydel or by price zone?",
+    "What is the average monthly rent for 2-room dwellings in Oslo and Baerum municipality?",
 ]
 
 
@@ -49,7 +50,7 @@ def format_source_list(retrieved_docs: list) -> list[str]:
 def build_prompt(question: str, context_block: str) -> str:
     """Build a prompt-ready RAG input without calling an LLM."""
     return (
-        "You are a source-grounded assistant for SSB CPI data and documentation.\n"
+        "You are a source-grounded assistant for SSB rental statistics and documentation.\n"
         "Answer the user's question using only the provided context.\n"
         "If the context does not contain enough information, say that clearly.\n"
         "Reference the relevant source labels in your answer.\n\n"
@@ -61,7 +62,7 @@ def build_prompt(question: str, context_block: str) -> str:
 def run_indexing() -> None:
     """Rebuild the vector store from the current project documents."""
     index_documents(
-        config.paths.data_dir,
+        config.paths.raw_docs_dir,
         config.paths.vectorstore_dir,
         config.retrieval.collection_name,
         config.embedding.model_name,

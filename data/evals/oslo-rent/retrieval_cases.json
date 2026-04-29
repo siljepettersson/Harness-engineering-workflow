@@ -1,0 +1,73 @@
+[
+  {
+    "id": "oslo_rent_measurement_purpose",
+    "question": "What does the rental market survey measure?",
+    "topic": "oslo-rent",
+    "expected_sources": [
+      "ssb-rental-market-survey-oslo-baerum-2025.md",
+      "ssb-rental-market-survey-annual-overview.md"
+    ],
+    "expected_keywords": [
+      "measure rent levels",
+      "rental market"
+    ],
+    "notes": "Good retrieval should surface the purpose statement, not only methodology or source-note chunks."
+  },
+  {
+    "id": "oslo_rent_predicted_monthly_rent",
+    "question": "What is predicted monthly rent in the rental market survey?",
+    "topic": "oslo-rent",
+    "expected_sources": [
+      "ssb-rental-market-survey-annual-overview.md"
+    ],
+    "expected_keywords": [
+      "predicted monthly rents",
+      "regression model",
+      "hedonic"
+    ],
+    "notes": "This question should prefer the annual overview page because it explicitly explains predicted monthly rents and links that concept to table 09897."
+  },
+  {
+    "id": "oslo_rent_comparability_warning",
+    "question": "Can Oslo and Baerum rent figures be directly compared across years?",
+    "topic": "oslo-rent",
+    "expected_sources": [
+      "ssb-rental-market-survey-oslo-baerum-2025.md",
+      "ssb-rental-market-survey-annual-overview.md"
+    ],
+    "expected_keywords": [
+      "not directly comparable",
+      "unique sample",
+      "price level survey"
+    ],
+    "notes": "The expected answer should be cautious and should surface the comparability warning."
+  },
+  {
+    "id": "oslo_rent_geography_publication_standard",
+    "question": "Does SSB publish these rent figures by bydel or by price zone?",
+    "topic": "oslo-rent",
+    "expected_sources": [
+      "ssb-rental-market-survey-annual-overview.md"
+    ],
+    "expected_keywords": [
+      "price zone",
+      "not bydeler",
+      "09897"
+    ],
+    "notes": "A strong retrieval result should pull the yearly overview because it explicitly explains that 09897 uses Oslo price zones."
+  },
+  {
+    "id": "oslo_rent_oslo_baerum_2025_two_rooms",
+    "question": "What is the average monthly rent for 2-room dwellings in Oslo and Baerum municipality?",
+    "topic": "oslo-rent",
+    "expected_sources": [
+      "ssb-rental-market-survey-oslo-baerum-2025.md"
+    ],
+    "expected_keywords": [
+      "15,260",
+      "Oslo and Baerum municipality",
+      "2 rooms"
+    ],
+    "notes": "This is the first retrieval-side counterpart to the future structured query path from table 09895."
+  }
+]
