@@ -1,0 +1,44 @@
+[
+  {
+    "id": "cpi_measurement_purpose",
+    "question": "What does CPI measure?",
+    "topic": "cpi",
+    "expected_sources": [
+      "ssb-consumer-price-index-overview.md"
+    ],
+    "expected_keywords": [
+      "development in consumer prices",
+      "private households",
+      "inflation"
+    ],
+    "notes": "Good retrieval should surface the CPI purpose statement rather than a generic rent source."
+  },
+  {
+    "id": "cpi_national_level_only",
+    "question": "Is CPI published for Oslo or only at national level?",
+    "topic": "cpi",
+    "expected_sources": [
+      "ssb-consumer-price-index-overview.md"
+    ],
+    "expected_keywords": [
+      "national level only",
+      "regional level"
+    ],
+    "notes": "This case protects the boundary that CPI is not an Oslo bydel statistic."
+  },
+  {
+    "id": "rent_cpi_bridge",
+    "question": "How is the rental market survey related to CPI?",
+    "topic": null,
+    "expected_sources": [
+      "ssb-consumer-price-index-overview.md",
+      "ssb-rental-market-survey-annual-overview.md"
+    ],
+    "expected_keywords": [
+      "Consumer Price Index",
+      "monthly rent survey in the CPI",
+      "input"
+    ],
+    "notes": "This bridge case should retrieve both the CPI overview and the rental survey overview."
+  }
+]

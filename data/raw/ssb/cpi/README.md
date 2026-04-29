@@ -4,6 +4,7 @@ Curated source-of-truth documents for the CPI assistant.
 
 Planned first files:
 
+- `ssb-consumer-price-index-overview.md`
 - `about-cpi.md`
 - `cpi-methodology.md`
 - `hicp.md`
