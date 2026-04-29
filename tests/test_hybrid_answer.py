@@ -1,4 +1,5 @@
 import unittest
+from types import SimpleNamespace
 
 from src.config import AppConfig
 from src.hybrid_answer import (
@@ -13,7 +14,16 @@ from src.structured_query import find_rent_row_by_area
 def make_retrieved_context(context_block: str) -> RetrievedContext:
     return RetrievedContext(
         question="dummy",
-        retrieved_chunks=[object()],
+        retrieved_chunks=[
+            SimpleNamespace(
+                page_content=context_block,
+                metadata={
+                    "topic": "oslo-rent",
+                    "filename": "example.md",
+                    "chunk_index": 0,
+                },
+            )
+        ],
         source_labels=["[Source 1] oslo-rent/example.md#chunk-0"],
         context_block=context_block,
         topic_filter_used="oslo-rent",

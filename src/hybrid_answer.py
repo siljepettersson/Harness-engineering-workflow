@@ -1,6 +1,7 @@
 from collections.abc import Callable
 
 from .config import AppConfig, config
+from .rag_pipeline import format_retrieved_context, format_source_list
 from .schemas import AssistantResponse, RetrievedContext
 from .structured_query import StructuredRentResult, find_rent_row_by_area
 
@@ -9,6 +10,15 @@ COMPARABILITY_KEYWORDS = (
     "not directly comparable",
     "price level survey",
     "unique sample",
+)
+STRUCTURED_FIGURE_KEYWORDS = (
+    "oslo and baerum municipality",
+    "15,260",
+    "4,060",
+    "two rooms",
+    "2-room",
+    "2 rooms",
+    "2025",
 )
 
 
@@ -30,6 +40,51 @@ def extract_comparability_warning(retrieved_context: RetrievedContext) -> str:
     return (
         "The retrieved rent sources do not give enough support for a stronger time-series claim, "
         "so the figures should be treated cautiously across years."
+    )
+
+
+def score_hybrid_support_chunk(chunk_text: str) -> int:
+    """Score a retrieved chunk for the first narrow hybrid rent path."""
+    lowered = chunk_text.lower()
+    score = 0
+
+    for keyword in COMPARABILITY_KEYWORDS:
+        if keyword in lowered:
+            score += 3
+
+    for keyword in STRUCTURED_FIGURE_KEYWORDS:
+        if keyword in lowered:
+            score += 2
+
+    return score
+
+
+def trim_retrieved_context_for_hybrid_path(
+    retrieved_context: RetrievedContext,
+    max_chunks: int = 2,
+) -> RetrievedContext:
+    """Keep only the most useful retrieved chunks for the first hybrid route."""
+    ranked_chunks = sorted(
+        retrieved_context.retrieved_chunks,
+        key=lambda doc: score_hybrid_support_chunk(doc.page_content),
+        reverse=True,
+    )
+    selected_chunks = ranked_chunks[:max_chunks]
+    selected_source_labels = format_source_list(selected_chunks)
+    selected_context_block = format_retrieved_context(selected_chunks)
+
+    retrieval_notes = [
+        *retrieved_context.retrieval_notes,
+        f"Trimmed hybrid support evidence to {len(selected_chunks)} chunk(s).",
+    ]
+
+    return RetrievedContext(
+        question=retrieved_context.question,
+        retrieved_chunks=selected_chunks,
+        source_labels=selected_source_labels,
+        context_block=selected_context_block,
+        topic_filter_used=retrieved_context.topic_filter_used,
+        retrieval_notes=retrieval_notes,
     )
 
 
@@ -102,6 +157,7 @@ def answer_oslo_rent_hybrid_question(
             retrieved_context=retrieved_context,
         )
 
+    retrieved_context = trim_retrieved_context_for_hybrid_path(retrieved_context)
     warning = extract_comparability_warning(retrieved_context)
     answer_text = build_oslo_rent_hybrid_answer_text(structured_result, warning)
     sources = [build_structured_source_label(structured_result), *retrieved_context.source_labels]

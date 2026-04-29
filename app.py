@@ -7,8 +7,14 @@ from src.schemas import AssistantResponse
 
 TOPIC_OPTIONS = {
     "All topics": None,
+    "Oslo rent": "oslo-rent",
     "CPI": "cpi",
 }
+
+HYBRID_EXAMPLE_QUESTION = (
+    "What is the average monthly rent for 2-room dwellings in Oslo and Baerum municipality, "
+    "and can it be directly compared across years?"
+)
 
 STATUS_LABELS = {
     "answered": "Answered",
@@ -19,13 +25,37 @@ STATUS_LABELS = {
 }
 
 
+def prettify_source_label(source: str) -> str:
+    if source.startswith("[Structured Source]"):
+        return source
+
+    if source.startswith("[Source ") and "] " in source:
+        _, raw_label = source.split("] ", 1)
+    else:
+        raw_label = source
+
+    document_path = raw_label.split("#", 1)[0]
+    filename = document_path.split("/")[-1]
+    title = filename.removesuffix(".md").replace("-", " ").strip()
+
+    if title:
+        return f"Raw source: {title.title()}"
+
+    return source
+
+
 def render_sources(sources: list[str]) -> None:
     if not sources:
         st.caption("No sources.")
         return
 
+    seen: set[str] = set()
     for source in sources:
-        st.markdown(f"- `{source}`")
+        pretty_source = prettify_source_label(source)
+        if pretty_source in seen:
+            continue
+        seen.add(pretty_source)
+        st.markdown(f"- {pretty_source}")
 
 
 def render_trace(response: AssistantResponse) -> None:
@@ -59,7 +89,7 @@ def render_trace(response: AssistantResponse) -> None:
 
 def render_prompt(prompt: str | None) -> None:
     if not prompt:
-        st.caption("No prompt was built.")
+        st.caption("Prompt not used for this route.")
         return
 
     st.text_area("Prompt", prompt, height=320, disabled=True)
@@ -92,12 +122,17 @@ def render_response(response: AssistantResponse) -> None:
 
 
 def main() -> None:
-    st.set_page_config(page_title="SSB CPI Hybrid RAG Assistant", page_icon=":material/search:")
-    st.title("SSB CPI Hybrid RAG Assistant")
+    st.set_page_config(page_title="SSB Hybrid Rent and CPI Assistant", page_icon=":material/search:")
+    st.title("SSB Hybrid Rent and CPI Assistant")
+    st.caption(
+        "Current end-to-end path: Oslo rent hybrid answer over table 09895 plus raw SSB rent documentation."
+    )
 
     with st.sidebar:
         selected_topic_label = st.selectbox("Topic", list(TOPIC_OPTIONS.keys()))
         selected_topic = TOPIC_OPTIONS[selected_topic_label]
+        st.caption("Try this hybrid question")
+        st.code(HYBRID_EXAMPLE_QUESTION, language="text")
         llm_choices = get_available_llm_choices()
         llm_choice_labels = ["Retrieval only"] + [choice.label for choice in llm_choices]
         selected_llm_label = st.selectbox("LLM provider", llm_choice_labels)
@@ -118,7 +153,7 @@ def main() -> None:
             else:
                 st.markdown(message["content"])
 
-    question = st.chat_input("Ask about SSB CPI data and documentation")
+    question = st.chat_input("Ask about SSB rent or CPI data and documentation")
     if not question:
         return
 
@@ -127,7 +162,7 @@ def main() -> None:
         st.markdown(question)
 
     with st.chat_message("assistant"):
-        with st.spinner("Searching SSB CPI knowledge base..."):
+        with st.spinner("Searching SSB knowledge base..."):
             app_config = AppConfig(
                 llm=selected_llm_config
                 if selected_llm_config
