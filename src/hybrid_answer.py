@@ -1,6 +1,5 @@
 from collections.abc import Callable
 
-from .assistant import retrieve_context
 from .config import AppConfig, config
 from .schemas import AssistantResponse, RetrievedContext
 from .structured_query import StructuredRentResult, find_rent_row_by_area
@@ -60,9 +59,14 @@ def answer_oslo_rent_hybrid_question(
     question: str,
     area_label: str = "Oslo and Baerum municipality",
     app_config: AppConfig = config,
-    retriever: Callable[[str, str | None, AppConfig], RetrievedContext] = retrieve_context,
+    retriever: Callable[[str, str | None, AppConfig], RetrievedContext] | None = None,
 ) -> AssistantResponse:
     """Answer the first narrow hybrid Oslo-rent question with structured and raw evidence."""
+    if retriever is None:
+        from .assistant import retrieve_context
+
+        retriever = retrieve_context
+
     try:
         structured_result = find_rent_row_by_area(area_label)
     except LookupError as exc:

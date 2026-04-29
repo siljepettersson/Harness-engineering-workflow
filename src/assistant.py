@@ -1,4 +1,7 @@
+import re
+
 from .config import AppConfig, config
+from .hybrid_answer import answer_oslo_rent_hybrid_question
 from .llm import LLMConfigurationError, generate_answer
 from .query import query
 from .rag_pipeline import build_prompt, format_retrieved_context, format_source_list
@@ -6,6 +9,7 @@ from .schemas import AssistantResponse, RetrievedContext
 
 
 ALL_TOPIC_FILTER_VALUES = {"", "all", "all topics", "alle temaer"}
+OSLO_RENT_HYBRID_AREA_LABEL = "Oslo and Baerum municipality"
 
 
 def normalize_topic_filter(topic_filter: str | None) -> str | None:
@@ -18,6 +22,22 @@ def normalize_topic_filter(topic_filter: str | None) -> str | None:
         return None
 
     return cleaned_filter
+
+
+def is_first_oslo_rent_hybrid_question(question: str) -> bool:
+    """Detect the first narrow hybrid rent question shape."""
+    lowered = re.sub(r"\s+", " ", question.strip().lower())
+
+    return (
+        "oslo and baerum" in lowered
+        and ("average monthly rent" in lowered or "monthly rent" in lowered)
+        and ("2-room" in lowered or "2 room" in lowered or "2 rooms" in lowered)
+        and (
+            "directly compared across years" in lowered
+            or "compared across years" in lowered
+            or "directly comparable across years" in lowered
+        )
+    )
 
 
 def retrieve_context(
@@ -74,6 +94,13 @@ def answer_question(
     app_config: AppConfig = config,
 ) -> AssistantResponse:
     """Retrieve evidence, build a prompt, and generate an assistant response."""
+    if is_first_oslo_rent_hybrid_question(question):
+        return answer_oslo_rent_hybrid_question(
+            question,
+            area_label=OSLO_RENT_HYBRID_AREA_LABEL,
+            app_config=app_config,
+        )
+
     try:
         retrieved_context = retrieve_context(
             question,
