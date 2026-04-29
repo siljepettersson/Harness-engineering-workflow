@@ -1,0 +1,29 @@
+{
+  "source_type": "structured_ssb_extract",
+  "topic": "oslo-rent",
+  "statistics_name": "Rental market survey",
+  "source_table": "09897",
+  "source_url": "https://www.ssb.no/en/statbank1/table/09897",
+  "retrieval_date": "2026-04-29",
+  "year": "2025",
+  "measure": "Predicted monthly rent",
+  "filters": {
+    "number_of_rooms_and_utility_floor_space": "2 rooms 50 sqm"
+  },
+  "price_zone_notes": [
+    "The classification of area is not an official classification standard.",
+    "Predicted monthly rents are based on a hedonic price regression model.",
+    "Rents are not strictly comparable over time."
+  ],
+  "selected_price_zones": [
+    "Oslo - Sentrum, Frogner, Ullern and St. Hanshaugen",
+    "Oslo - Grunerlokka, Gamle Oslo, Sagene, Nordre Aker and Vestre Aker",
+    "Oslo - Ostensjo, Nordstrand and Bjerke",
+    "Oslo - Sondre Nordstrand, Grorud, Stovner and Alna"
+  ],
+  "notes": [
+    "This file is a seed schema placeholder for the next structured extraction step.",
+    "Area labels are kept exactly in the normalized project form used elsewhere in the repository.",
+    "Do not treat these price zones as equivalent to bydeler."
+  ]
+}

@@ -1,0 +1,40 @@
+{
+  "source_type": "structured_ssb_extract",
+  "topic": "oslo-rent",
+  "statistics_name": "Rental market survey",
+  "source_url": "https://www.ssb.no/en/priser-og-prisindekser/boligpriser-og-boligprisindekser/statistikk/leiemarkedsundersokelsen",
+  "source_table": "09895",
+  "retrieval_date": "2026-04-29",
+  "year": "2025",
+  "measure": "Average monthly rents and average annual rents per sqm",
+  "filters": {
+    "number_of_rooms": "2 rooms"
+  },
+  "rows": [
+    {
+      "area_label": "Oslo and Baerum municipality",
+      "average_monthly_rent_nok": 15260,
+      "average_annual_rent_per_sqm_nok": 4060
+    },
+    {
+      "area_label": "Akershus except Baerum municipality",
+      "average_monthly_rent_nok": 12520,
+      "average_annual_rent_per_sqm_nok": 3180
+    },
+    {
+      "area_label": "Bergen municipality",
+      "average_monthly_rent_nok": 11870,
+      "average_annual_rent_per_sqm_nok": 3200
+    },
+    {
+      "area_label": "Stavanger municipality",
+      "average_monthly_rent_nok": 11400,
+      "average_annual_rent_per_sqm_nok": 2880
+    }
+  ],
+  "notes": [
+    "Area labels are kept exactly as published by SSB.",
+    "This is a small seed extract for hybrid retrieval and structured query work.",
+    "Do not rewrite municipality-level labels into Oslo bydeler."
+  ]
+}
