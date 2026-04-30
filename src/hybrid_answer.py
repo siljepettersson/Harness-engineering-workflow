@@ -20,6 +20,18 @@ STRUCTURED_FIGURE_KEYWORDS = (
     "2 rooms",
     "2025",
 )
+BRIDGE_CPI_KEYWORDS = (
+    "national level only",
+    "development in consumer prices",
+    "common measure of inflation",
+    "not be treated as an oslo-specific rent statistic",
+)
+BRIDGE_RENT_KEYWORDS = (
+    "measure rent levels",
+    "oslo and baerum municipality",
+    "monthly rent survey in the cpi",
+    "rent level survey",
+)
 
 
 def extract_comparability_warning(retrieved_context: RetrievedContext) -> str:
@@ -85,6 +97,76 @@ def trim_retrieved_context_for_hybrid_path(
         context_block=selected_context_block,
         topic_filter_used=retrieved_context.topic_filter_used,
         retrieval_notes=retrieval_notes,
+    )
+
+
+def score_bridge_support_chunk(chunk_text: str) -> int:
+    """Score a chunk for the CPI-rent bridge explanation path."""
+    lowered = chunk_text.lower()
+    score = 0
+
+    for keyword in BRIDGE_CPI_KEYWORDS:
+        if keyword in lowered:
+            score += 3
+
+    for keyword in BRIDGE_RENT_KEYWORDS:
+        if keyword in lowered:
+            score += 3
+
+    return score
+
+
+def trim_retrieved_context_for_bridge_path(
+    retrieved_context: RetrievedContext,
+    max_chunks: int = 2,
+) -> RetrievedContext:
+    """Keep only the strongest bridge-support chunks."""
+    ranked_chunks = sorted(
+        retrieved_context.retrieved_chunks,
+        key=lambda doc: score_bridge_support_chunk(doc.page_content),
+        reverse=True,
+    )
+    selected_chunks = ranked_chunks[:max_chunks]
+    selected_source_labels = format_source_list(selected_chunks)
+    selected_context_block = format_retrieved_context(selected_chunks)
+
+    retrieval_notes = [
+        *retrieved_context.retrieval_notes,
+        f"Trimmed bridge support evidence to {len(selected_chunks)} chunk(s).",
+    ]
+
+    return RetrievedContext(
+        question=retrieved_context.question,
+        retrieved_chunks=selected_chunks,
+        source_labels=selected_source_labels,
+        context_block=selected_context_block,
+        topic_filter_used=retrieved_context.topic_filter_used,
+        retrieval_notes=retrieval_notes,
+    )
+
+
+def combine_retrieved_contexts(
+    question: str,
+    *contexts: RetrievedContext,
+) -> RetrievedContext:
+    """Combine multiple retrieved contexts into one trace object."""
+    combined_chunks = []
+    combined_notes: list[str] = []
+
+    for context in contexts:
+        combined_chunks.extend(context.retrieved_chunks)
+        combined_notes.extend(context.retrieval_notes)
+
+    source_labels = format_source_list(combined_chunks)
+    context_block = format_retrieved_context(combined_chunks)
+
+    return RetrievedContext(
+        question=question,
+        retrieved_chunks=combined_chunks,
+        source_labels=source_labels,
+        context_block=context_block,
+        topic_filter_used=None,
+        retrieval_notes=combined_notes,
     )
 
 
@@ -168,4 +250,61 @@ def answer_oslo_rent_hybrid_question(
         answer=answer_text,
         sources=sources,
         retrieved_context=retrieved_context,
+    )
+
+
+def build_cpi_rent_bridge_answer_text() -> str:
+    """Build the first narrow CPI-rent bridge explanation answer."""
+    return (
+        "No. The Oslo and Baerum rental market survey figure should not be treated as Oslo CPI. "
+        "The rental market survey gives a rent-level figure for a published area label, while CPI is a "
+        "national-level measure of the development in consumer prices for goods and services purchased "
+        "by private households in Norway. The two are related because Statistics Norway says the rental "
+        "market survey sample is also the sample of the monthly rent survey in the CPI, but that does "
+        "not make the Oslo and Baerum rent figure the same thing as CPI."
+    )
+
+
+def answer_cpi_rent_bridge_question(
+    question: str,
+    app_config: AppConfig = config,
+    retriever: Callable[[str, str | None, AppConfig], RetrievedContext] | None = None,
+) -> AssistantResponse:
+    """Answer the first narrow CPI-rent bridge explanation question."""
+    if retriever is None:
+        from .assistant import retrieve_context
+
+        retriever = retrieve_context
+
+    try:
+        cpi_context = retriever(question, topic_filter="cpi", app_config=app_config)
+        rent_context = retriever(question, topic_filter="oslo-rent", app_config=app_config)
+    except Exception as exc:
+        return AssistantResponse(
+            question=question,
+            status="runtime_error",
+            answer="Bridge retrieval failed before a CPI-rent explanation could be built.",
+            sources=[],
+            error=str(exc),
+        )
+
+    if not cpi_context.retrieved_chunks or not rent_context.retrieved_chunks:
+        combined = combine_retrieved_contexts(question, cpi_context, rent_context)
+        return AssistantResponse(
+            question=question,
+            status="no_results",
+            answer="The system could not retrieve enough CPI and rent evidence for this bridge explanation.",
+            sources=combined.source_labels,
+            retrieved_context=combined,
+        )
+
+    combined_context = combine_retrieved_contexts(question, cpi_context, rent_context)
+    combined_context = trim_retrieved_context_for_bridge_path(combined_context)
+
+    return AssistantResponse(
+        question=question,
+        status="answered",
+        answer=build_cpi_rent_bridge_answer_text(),
+        sources=combined_context.source_labels,
+        retrieved_context=combined_context,
     )

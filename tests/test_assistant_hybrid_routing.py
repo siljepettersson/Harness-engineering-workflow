@@ -1,7 +1,11 @@
 import unittest
 from unittest.mock import patch
 
-from src.assistant import answer_question, is_first_oslo_rent_hybrid_question
+from src.assistant import (
+    answer_question,
+    is_first_cpi_rent_bridge_question,
+    is_first_oslo_rent_hybrid_question,
+)
 from src.schemas import AssistantResponse
 
 
@@ -35,6 +39,26 @@ class AssistantHybridRoutingTests(unittest.TestCase):
             response = answer_question(question)
 
         mocked_hybrid.assert_called_once()
+        self.assertEqual(response, expected_response)
+
+    def test_detects_first_cpi_rent_bridge_question_shape(self) -> None:
+        question = "Can the Oslo and Baerum rental market survey figure be used as Oslo CPI? Why or why not?"
+
+        self.assertTrue(is_first_cpi_rent_bridge_question(question))
+
+    def test_answer_question_routes_bridge_shape_to_bridge_path(self) -> None:
+        question = "Can the Oslo and Baerum rental market survey figure be used as Oslo CPI? Why or why not?"
+        expected_response = AssistantResponse(
+            question=question,
+            status="answered",
+            answer="Bridge answer",
+            sources=["[Source 1] cpi/ssb-consumer-price-index-overview.md#chunk-0"],
+        )
+
+        with patch("src.assistant.answer_cpi_rent_bridge_question", return_value=expected_response) as mocked_bridge:
+            response = answer_question(question)
+
+        mocked_bridge.assert_called_once()
         self.assertEqual(response, expected_response)
 
 

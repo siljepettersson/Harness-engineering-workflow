@@ -1,7 +1,10 @@
 import re
 
 from .config import AppConfig, config
-from .hybrid_answer import answer_oslo_rent_hybrid_question
+from .hybrid_answer import (
+    answer_cpi_rent_bridge_question,
+    answer_oslo_rent_hybrid_question,
+)
 from .llm import LLMConfigurationError, generate_answer
 from .query import query
 from .rag_pipeline import build_prompt, format_retrieved_context, format_source_list
@@ -37,6 +40,18 @@ def is_first_oslo_rent_hybrid_question(question: str) -> bool:
             or "compared across years" in lowered
             or "directly comparable across years" in lowered
         )
+    )
+
+
+def is_first_cpi_rent_bridge_question(question: str) -> bool:
+    """Detect the first narrow CPI-rent bridge explanation question shape."""
+    lowered = re.sub(r"\s+", " ", question.strip().lower())
+
+    return (
+        "oslo and baerum" in lowered
+        and "rental market survey figure" in lowered
+        and "oslo cpi" in lowered
+        and ("why or why not" in lowered or "why not" in lowered)
     )
 
 
@@ -94,6 +109,12 @@ def answer_question(
     app_config: AppConfig = config,
 ) -> AssistantResponse:
     """Retrieve evidence, build a prompt, and generate an assistant response."""
+    if is_first_cpi_rent_bridge_question(question):
+        return answer_cpi_rent_bridge_question(
+            question,
+            app_config=app_config,
+        )
+
     if is_first_oslo_rent_hybrid_question(question):
         return answer_oslo_rent_hybrid_question(
             question,
