@@ -15,6 +15,9 @@ HYBRID_EXAMPLE_QUESTION = (
     "What is the average monthly rent for 2-room dwellings in Oslo and Baerum municipality, "
     "and can it be directly compared across years?"
 )
+BRIDGE_EXAMPLE_QUESTION = (
+    "Can the Oslo and Baerum rental market survey figure be used as Oslo CPI? Why or why not?"
+)
 
 STATUS_LABELS = {
     "answered": "Answered",
@@ -125,14 +128,15 @@ def main() -> None:
     st.set_page_config(page_title="SSB Hybrid Rent and CPI Assistant", page_icon=":material/search:")
     st.title("SSB Hybrid Rent and CPI Assistant")
     st.caption(
-        "Current end-to-end path: Oslo rent hybrid answer over table 09895 plus raw SSB rent documentation."
+        "Current end-to-end paths: Oslo rent hybrid answer over table 09895, and a CPI-rent bridge explanation grounded in both domains."
     )
 
     with st.sidebar:
         selected_topic_label = st.selectbox("Topic", list(TOPIC_OPTIONS.keys()))
         selected_topic = TOPIC_OPTIONS[selected_topic_label]
-        st.caption("Try this hybrid question")
+        st.caption("Try these end-to-end questions")
         st.code(HYBRID_EXAMPLE_QUESTION, language="text")
+        st.code(BRIDGE_EXAMPLE_QUESTION, language="text")
         llm_choices = get_available_llm_choices()
         llm_choice_labels = ["Retrieval only"] + [choice.label for choice in llm_choices]
         selected_llm_label = st.selectbox("LLM provider", llm_choice_labels)
