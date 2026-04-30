@@ -28,17 +28,19 @@
   },
   {
     "id": "rent_cpi_bridge",
-    "question": "How is the rental market survey related to CPI?",
+    "question": "Can the Oslo and Baerum rental market survey figure be used as Oslo CPI? Why or why not?",
     "topic": null,
     "expected_sources": [
       "ssb-consumer-price-index-overview.md",
+      "ssb-rental-market-survey-oslo-baerum-2025.md",
       "ssb-rental-market-survey-annual-overview.md"
     ],
     "expected_keywords": [
-      "Consumer Price Index",
-      "monthly rent survey in the CPI",
-      "input"
+      "national level only",
+      "rent level",
+      "not the same thing as CPI",
+      "monthly rent survey in the CPI"
     ],
-    "notes": "This bridge case should retrieve both the CPI overview and the rental survey overview."
+    "notes": "This bridge case should force retrieval of both the CPI national-level source and the Oslo rent source, while preserving the distinction between a rent-level figure and CPI."
   }
 ]

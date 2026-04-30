@@ -15,6 +15,7 @@ DEMO_QUESTIONS = [
     "Can Oslo and Baerum rent figures be directly compared across years?",
     "Does SSB publish these rent figures by bydel or by price zone?",
     "What is the average monthly rent for 2-room dwellings in Oslo and Baerum municipality?",
+    "Can the Oslo and Baerum rental market survey figure be used as Oslo CPI? Why or why not?",
 ]
 
 
