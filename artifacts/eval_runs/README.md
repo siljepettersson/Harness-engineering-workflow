@@ -9,3 +9,5 @@ Each run should record:
 - dataset version
 - metrics
 - failed cases
+
+The first retrieval runner writes JSON reports here, one file per run.
