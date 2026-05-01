@@ -41,6 +41,14 @@ class RetrievalEvalSummary:
     failed_case_ids: list[str]
 
 
+@dataclass(frozen=True)
+class RetrievalEvalDatasetRun:
+    dataset_name: str
+    case_path: str
+    summary: RetrievalEvalSummary
+    results: list[RetrievalEvalCaseResult]
+
+
 def load_retrieval_cases(path: Path) -> list[RetrievalEvalCase]:
     raw_cases = json.loads(path.read_text(encoding="utf-8"))
     return [RetrievalEvalCase(**raw_case) for raw_case in raw_cases]
@@ -129,6 +137,52 @@ def build_eval_report(
     }
 
 
+def build_combined_eval_report(dataset_runs: list[RetrievalEvalDatasetRun]) -> dict:
+    total_cases = sum(run.summary.total_cases for run in dataset_runs)
+    total_source_hits = sum(
+        sum(result.source_hit for result in run.results)
+        for run in dataset_runs
+    )
+    total_top_1_hits = sum(
+        sum(result.top_1_source_hit for result in run.results)
+        for run in dataset_runs
+    )
+    total_keyword_hits = sum(
+        sum(result.keyword_hit for result in run.results)
+        for run in dataset_runs
+    )
+    failed_case_ids = [
+        case_id
+        for run in dataset_runs
+        for case_id in run.summary.failed_case_ids
+    ]
+
+    overall_summary = {
+        "total_cases": total_cases,
+        "source_hit_rate": (total_source_hits / total_cases) if total_cases else 0.0,
+        "top_1_source_hit_rate": (total_top_1_hits / total_cases) if total_cases else 0.0,
+        "keyword_hit_rate": (total_keyword_hits / total_cases) if total_cases else 0.0,
+        "failed_case_ids": failed_case_ids,
+    }
+
+    return {
+        "timestamp": datetime.now().isoformat(timespec="seconds"),
+        "collection_name": config.retrieval.collection_name,
+        "embedding_model": config.embedding.model_name,
+        "top_k": config.retrieval.top_k,
+        "overall_summary": overall_summary,
+        "dataset_runs": [
+            {
+                "dataset_name": run.dataset_name,
+                "case_path": run.case_path,
+                "summary": asdict(run.summary),
+                "results": [asdict(result) for result in run.results],
+            }
+            for run in dataset_runs
+        ],
+    }
+
+
 def write_eval_report(report: dict, output_path: Path) -> None:
     output_path.parent.mkdir(parents=True, exist_ok=True)
     output_path.write_text(json.dumps(report, indent=2, ensure_ascii=True) + "\n", encoding="utf-8")
@@ -143,18 +197,51 @@ def run_retrieval_eval(case_path: Path, output_path: Path, k: int = 4) -> dict:
     return report
 
 
+def run_named_retrieval_eval(dataset_name: str, case_path: Path, k: int = 4) -> RetrievalEvalDatasetRun:
+    cases = load_retrieval_cases(case_path)
+    case_results = [evaluate_retrieval_case(case, k=k) for case in cases]
+    summary = summarize_results(case_results)
+    return RetrievalEvalDatasetRun(
+        dataset_name=dataset_name,
+        case_path=str(case_path),
+        summary=summary,
+        results=case_results,
+    )
+
+
 def main() -> None:
-    case_path = config.paths.project_root / "data" / "evals" / "oslo-rent" / "retrieval_cases.json"
+    case_paths = {
+        "oslo-rent": config.paths.project_root / "data" / "evals" / "oslo-rent" / "retrieval_cases.json",
+        "cpi": config.paths.project_root / "data" / "evals" / "cpi" / "retrieval_cases.json",
+    }
     timestamp = datetime.now().strftime("%Y%m%d-%H%M%S")
-    output_path = (
+    output_dir = (
         config.paths.project_root
         / "artifacts"
         / "eval_runs"
-        / f"retrieval-eval-{timestamp}.json"
     )
-    report = run_retrieval_eval(case_path, output_path, k=config.retrieval.top_k)
-    print(json.dumps(report["summary"], indent=2))
+    output_path = output_dir / f"retrieval-eval-{timestamp}.json"
+    latest_output_path = output_dir / "retrieval-eval-latest.json"
+
+    dataset_runs = [
+        run_named_retrieval_eval(dataset_name, case_path, k=config.retrieval.top_k)
+        for dataset_name, case_path in case_paths.items()
+    ]
+    report = build_combined_eval_report(dataset_runs)
+    write_eval_report(report, output_path)
+    write_eval_report(report, latest_output_path)
+
+    print(json.dumps(report["overall_summary"], indent=2))
+    print("Per dataset:")
+    for dataset_run in report["dataset_runs"]:
+        print(
+            f"- {dataset_run['dataset_name']}: "
+            f"source_hit_rate={dataset_run['summary']['source_hit_rate']:.3f}, "
+            f"top_1_source_hit_rate={dataset_run['summary']['top_1_source_hit_rate']:.3f}, "
+            f"keyword_hit_rate={dataset_run['summary']['keyword_hit_rate']:.3f}"
+        )
     print(f"Saved report to {output_path}")
+    print(f"Updated latest report at {latest_output_path}")
 
 
 if __name__ == "__main__":

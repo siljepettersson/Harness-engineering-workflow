@@ -10,4 +10,7 @@ Each run should record:
 - metrics
 - failed cases
 
-The first retrieval runner writes JSON reports here, one file per run.
+The retrieval runner writes:
+
+- timestamped JSON reports, one file per run
+- `retrieval-eval-latest.json` as a stable pointer to the most recent combined run
